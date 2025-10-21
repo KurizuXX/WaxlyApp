@@ -1,8 +1,11 @@
 package com.app.waxly.ui.auth
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -10,54 +13,117 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.waxly.model.local.AppDatabase
+import com.app.waxly.repository.SessionManager
 import com.app.waxly.repository.UserRepository
 import com.app.waxly.viewmodel.AuthViewModel
 import com.app.waxly.viewmodel.AuthViewModelFactory
 
+/* Pantalla inicial simple: dos botones centrados */
 @Composable
-fun AuthScreen(onLoginSuccess: () -> Unit) {
-    val context = LocalContext.current
-    val db = remember { AppDatabase.get(context) }
-    val repo = remember { UserRepository(db.userDao()) }
-    val vm: AuthViewModel = viewModel(factory = AuthViewModelFactory(repo))
-    val ui by vm.uiState.collectAsState()
-
-    var isLogin by remember { mutableStateOf(true) }
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-
-    LaunchedEffect(ui.success) { if (ui.success) onLoginSuccess() }
-
-    Scaffold { padding ->
+fun AuthLandingScreen(onLogin: () -> Unit, onRegister: () -> Unit) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(24.dp)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = isLogin, onClick = { isLogin = true }, label = { Text("Login") })
-                FilterChip(selected = !isLogin, onClick = { isLogin = false }, label = { Text("Registro") })
-            }
-            Spacer(Modifier.height(16.dp))
-            if (!isLogin) {
-                OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                Spacer(Modifier.height(8.dp))
-            }
-            OutlinedTextField(email, { email = it }, label = { Text("Email") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(password, { password = it }, label = { Text("Contraseña") }, modifier = Modifier.fillMaxWidth(), singleLine = true, visualTransformation = PasswordVisualTransformation())
-            Spacer(Modifier.height(16.dp))
-            Button(
-                onClick = { if (isLogin) vm.login(email, password) else vm.register(name, email, password) },
-                enabled = !ui.isLoading,
-                modifier = Modifier.fillMaxWidth()
-            ) { Text(if (isLogin) "Iniciar sesión" else "Crear cuenta") }
+            Button(onClick = onLogin, modifier = Modifier.widthIn(min = 220.dp)) { Text("Iniciar Sesión") }
+            OutlinedButton(onClick = onRegister, modifier = Modifier.widthIn(min = 220.dp)) { Text("Registrarse") }
+        }
+    }
+}
 
-            if (ui.isLoading) { Spacer(Modifier.height(12.dp)); CircularProgressIndicator() }
-            ui.error?.let { Spacer(Modifier.height(12.dp)); Text(it, color = MaterialTheme.colorScheme.error) }
+/* Login: usa ViewModel + Room; guarda sesión al éxito */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LoginScreen(onBack: () -> Unit, onSuccess: () -> Unit) {
+    val context = LocalContext.current
+    val session = remember { SessionManager(context) }           // prefs para sesión
+    val db = remember { AppDatabase.get(context) }               // instancia Room
+    val vm: AuthViewModel = viewModel(factory = AuthViewModelFactory(UserRepository(db.userDao())))
+
+    val ui by vm.uiState.collectAsState()
+    var email by rememberSaveable { mutableStateOf("") }
+    var pass by rememberSaveable { mutableStateOf("") }
+
+    // Al completar login, marcar sesión y navegar
+    LaunchedEffect(ui.success) {
+        if (ui.success) {
+            session.setLoggedIn(true)
+            session.saveUser("Usuario", email.trim())
+            onSuccess()
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Iniciar Sesión") },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver") } }
+            )
+        }
+    ) { pad ->
+        Column(
+            Modifier.padding(pad).padding(16.dp).fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedTextField(email, { email = it }, label = { Text("Email") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(pass, { pass = it }, label = { Text("Contraseña") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, modifier = Modifier.fillMaxWidth())
+            Button(
+                onClick = { vm.login(email.trim(), pass) },
+                enabled = !ui.isLoading && email.isNotBlank() && pass.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Entrar") }
+
+            if (ui.isLoading) CircularProgressIndicator()
+            ui.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        }
+    }
+}
+
+/* Register: crea usuario, guarda datos mínimos en sesión y navega */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RegisterScreen(onBack: () -> Unit, onSuccess: () -> Unit) {
+    val context = LocalContext.current
+    val session = remember { SessionManager(context) }
+    val db = remember { AppDatabase.get(context) }
+    val vm: AuthViewModel = viewModel(factory = AuthViewModelFactory(UserRepository(db.userDao())))
+
+    val ui by vm.uiState.collectAsState()
+    var name by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var pass by rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(ui.success) {
+        if (ui.success) {
+            session.saveUser(name.trim(), email.trim())
+            onSuccess()
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Registrarse") },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver") } }
+            )
+        }
+    ) { pad ->
+        Column(
+            Modifier.padding(pad).padding(16.dp).fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(email, { email = it }, label = { Text("Email") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(pass, { pass = it }, label = { Text("Contraseña") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, modifier = Modifier.fillMaxWidth())
+            Button(
+                onClick = { vm.register(name.trim(), email.trim(), pass) },
+                enabled = !ui.isLoading && name.isNotBlank() && email.isNotBlank() && pass.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Crear cuenta") }
+
+            if (ui.isLoading) CircularProgressIndicator()
+            ui.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
     }
 }

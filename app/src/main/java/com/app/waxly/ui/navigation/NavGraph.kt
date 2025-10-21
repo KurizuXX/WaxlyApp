@@ -9,53 +9,82 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.app.waxly.ui.auth.AuthScreen
+import com.app.waxly.ui.auth.AuthLandingScreen
+import com.app.waxly.ui.auth.LoginScreen
+import com.app.waxly.ui.auth.RegisterScreen
 import com.app.waxly.ui.collection.CollectionScreen
 import com.app.waxly.ui.home.HomeScreen
 import com.app.waxly.ui.profile.ProfileScreen
 import com.app.waxly.ui.wantlist.WantlistScreen
 
-@Composable
-fun NavGraph(
-    navController: NavHostController,
-    startDestination: String = "auth"
-) {
-    // rutas donde se muestra el bottom bar
-    val topLevelRoutes = setOf("home", "collection", "wantlist", "profile")
+// Rutas centralizadas para evitar strings sueltos
+object Routes {
+    const val AUTH_LANDING = "authLanding"
+    const val LOGIN = "login"
+    const val REGISTER = "register"
+    const val HOME = "home"
+    const val COLLECTION = "collection"
+    const val WANTLIST = "wantlist"
+    const val PROFILE = "profile"
+}
 
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry?.destination?.route
+// Host de navegación + Scaffold con bottom bar solo en pantallas top-level
+@Composable
+fun NavGraph(navController: NavHostController) {
+    val topLevelRoutes = setOf(Routes.HOME, Routes.COLLECTION, Routes.WANTLIST, Routes.PROFILE)
+    val backStack by navController.currentBackStackEntryAsState()
+    val current = backStack?.destination?.route
 
     Scaffold(
-        bottomBar = {
-            if (currentRoute in topLevelRoutes) {
-                BottomNavBar(navController)
-            }
-        }
-    ) { innerPadding ->
+        bottomBar = { if (current in topLevelRoutes) BottomNavBar(navController) }
+    ) { inner ->
+        // Árbol de navegación
         NavHost(
             navController = navController,
-            startDestination = startDestination,
-            modifier = Modifier.padding(innerPadding)
+            startDestination = Routes.AUTH_LANDING,
+            modifier = Modifier.padding(inner)
         ) {
-            // ---------- Auth ----------
-            composable("auth") {
-                AuthScreen(
-                    onLoginSuccess = {
-                        navController.navigate("home") {
-                            // elimina Auth del back stack para no volver con back
-                            popUpTo("auth") { inclusive = true }
+            // Landing con botones Login/Register
+            composable(Routes.AUTH_LANDING) {
+                AuthLandingScreen(
+                    onLogin = { navController.navigate(Routes.LOGIN) },
+                    onRegister = { navController.navigate(Routes.REGISTER) }
+                )
+            }
+            // Login: al éxito, limpiamos backstack hasta landing y vamos a HOME
+            composable(Routes.LOGIN) {
+                LoginScreen(
+                    onBack = { navController.popBackStack() },
+                    onSuccess = {
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.AUTH_LANDING) { inclusive = true }
                             launchSingleTop = true
                         }
                     }
                 )
             }
-
-            // ---------- Top-level (BottomNav) ----------
-            composable("home") { HomeScreen() }
-            composable("collection") { CollectionScreen() }
-            composable("wantlist") { WantlistScreen() }
-            composable("profile") { ProfileScreen() }
+            // Register: mismo flujo que Login
+            composable(Routes.REGISTER) {
+                RegisterScreen(
+                    onBack = { navController.popBackStack() },
+                    onSuccess = {
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.AUTH_LANDING) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+            // Top-levels
+            composable(Routes.HOME) { HomeScreen() }
+            composable(Routes.COLLECTION) { CollectionScreen() }
+            composable(Routes.WANTLIST) { WantlistScreen() }
+            composable(Routes.PROFILE) {
+                ProfileScreen(
+                    navController = navController,
+                    onLogoutRoute = Routes.AUTH_LANDING
+                )
+            }
         }
     }
 }
