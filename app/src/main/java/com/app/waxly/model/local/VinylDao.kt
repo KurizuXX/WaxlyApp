@@ -7,18 +7,19 @@ import androidx.room.Query
 import com.app.waxly.model.entities.Vinyl
 import kotlinx.coroutines.flow.Flow
 
-// Catálogo base de vinilos + búsqueda
 @Dao
 interface VinylDao {
-    @Query("SELECT * FROM vinyls ORDER BY id ASC")
+
+    @Query("SELECT * FROM vinyls ORDER BY title")
     fun getAll(): Flow<List<Vinyl>>
 
+    // ⬇️ Renombrado para evitar choque con Compose
     @Query("""
-        SELECT * FROM vinyls
-        WHERE title LIKE :query OR artist LIKE :query
-        ORDER BY title ASC
+        SELECT * FROM vinyls 
+        WHERE title LIKE :q OR artist LIKE :q 
+        ORDER BY title
     """)
-    fun search(query: String): Flow<List<Vinyl>>
+    fun searchVinyls(q: String): Flow<List<Vinyl>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(items: List<Vinyl>)

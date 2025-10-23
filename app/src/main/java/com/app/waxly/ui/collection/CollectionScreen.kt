@@ -4,12 +4,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,9 +24,6 @@ import com.app.waxly.model.local.AppDatabase
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-// Pantalla de colección:
-// - 2 discos predeterminados + lo que el usuario agregue
-// - buscador funcional: al hacer click en un resultado lo agrega
 @Composable
 fun CollectionScreen() {
     val context = LocalContext.current
@@ -34,34 +31,36 @@ fun CollectionScreen() {
     val vinylDao = remember { db.vinylDao() }
     val myCollectionDao = remember { db.myCollectionDao() }
 
-    // Todos los vinilos (para resolver default y buscar)
     var all by remember { mutableStateOf(emptyList<Vinyl>()) }
-    LaunchedEffect(Unit) { vinylDao.getAll().collectLatest { all = it.distinctBy { v -> v.id } } }
-
-    // Dos por defecto (si existen)
-    val defaults = remember(all) {
-        val wanted = listOf("Blonde", "Salad Days")
-        wanted.mapNotNull { t -> all.find { it.title == t } }
+    LaunchedEffect(Unit) {
+        vinylDao.getAll().collectLatest { list -> all = list.distinctBy { it.id } }
     }
 
-    // Lo que ya está en mi colección (reactivo)
+    val defaults = remember(all) {
+        listOf("Blonde", "Salad Days").mapNotNull { t -> all.find { it.title == t } }
+    }
+
     var collected by remember { mutableStateOf(emptyList<Vinyl>()) }
     LaunchedEffect(Unit) {
-        myCollectionDao.getCollectedVinyls().collectLatest { collected = it.distinctBy { v -> v.id } }
+        myCollectionDao.getCollectedVinyls().collectLatest { list ->
+            collected = list.distinctBy { it.id }
+        }
     }
 
-    // Búsqueda en Room
-    var query by remember { mutableStateOf("") }
+    var query by rememberSaveable { mutableStateOf("") }
     var results by remember { mutableStateOf(emptyList<Vinyl>()) }
     LaunchedEffect(query) {
-        if (query.isBlank()) results = emptyList()
-        else vinylDao.search("%$query%").collectLatest { results = it.distinctBy { v -> v.id } }
+        if (query.isBlank()) {
+            results = emptyList()
+        } else {
+            vinylDao.searchVinyls("%$query%").collectLatest { list ->
+                results = list.distinctBy { it.id }
+            }
+        }
     }
 
     val scope = rememberCoroutineScope()
-
-    // Si no hay búsqueda: mostrar defaults + colección (sin duplicados)
-    val showing = remember(defaults, collected, query, results) {
+    val listToShow = remember(defaults, collected, query, results) {
         if (query.isBlank()) (defaults + collected).distinctBy { it.id } else results
     }
 
@@ -70,7 +69,6 @@ fun CollectionScreen() {
         Text("COLECCIÓN", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
         Spacer(Modifier.height(10.dp))
 
-        // Buscador redondeado estilo pill
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
@@ -83,7 +81,7 @@ fun CollectionScreen() {
 
         Spacer(Modifier.height(12.dp))
 
-        if (showing.isEmpty()) {
+        if (listToShow.isEmpty()) {
             Text(
                 if (query.isBlank()) "Cargando colección..." else "Sin resultados para \"$query\"",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -94,15 +92,23 @@ fun CollectionScreen() {
                 verticalArrangement = Arrangement.spacedBy(14.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(showing) { v ->
+                items(
+                    count = listToShow.size,
+                    key = { i -> listToShow[i].id }
+                ) { i ->
+                    val v = listToShow[i]
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            // Solo agrego al tocar si estoy buscando (evito tocar los defaults)
                             .clickable(
                                 enabled = query.isNotBlank(),
-                                onClick = { scope.launch { myCollectionDao.insert(MyCollection(vinylId = v.id)) } }
+                                onClick = {
+                                    scope.launch {
+                                        myCollectionDao.insert(MyCollection(vinylId = v.id))
+                                        query = "" // limpiar tras agregar
+                                    }
+                                }
                             )
                     ) { VinylRowCompact(v) }
                 }
@@ -111,7 +117,6 @@ fun CollectionScreen() {
     }
 }
 
-// Item vertical compacto (imagen + textos)
 @Composable
 private fun VinylRowCompact(v: Vinyl) {
     Image(

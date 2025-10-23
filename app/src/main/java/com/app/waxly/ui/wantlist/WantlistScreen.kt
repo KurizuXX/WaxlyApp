@@ -4,12 +4,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,7 +24,6 @@ import com.app.waxly.model.local.AppDatabase
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-// Wantlist vacía por defecto; el usuario busca y agrega desde resultados
 @Composable
 fun WantlistScreen() {
     val context = LocalContext.current
@@ -32,17 +31,24 @@ fun WantlistScreen() {
     val vinylDao = remember { db.vinylDao() }
     val wantDao = remember { db.myWantlistDao() }
 
-    // Estado de búsqueda
-    var query by remember { mutableStateOf("") }
+    var query by rememberSaveable { mutableStateOf("") }
     var results by remember { mutableStateOf(emptyList<Vinyl>()) }
     LaunchedEffect(query) {
-        if (query.isBlank()) results = emptyList()
-        else vinylDao.search("%$query%").collectLatest { results = it.distinctBy { v -> v.id } }
+        if (query.isBlank()) {
+            results = emptyList()
+        } else {
+            vinylDao.searchVinyls("%$query%").collectLatest { list ->
+                results = list.distinctBy { it.id }
+            }
+        }
     }
 
-    // Lo agregado a wantlist (para mostrar cuando no hay búsqueda)
     var wantlist by remember { mutableStateOf(emptyList<Vinyl>()) }
-    LaunchedEffect(Unit) { wantDao.getWantlistVinyls().collectLatest { wantlist = it.distinctBy { v -> v.id } } }
+    LaunchedEffect(Unit) {
+        wantDao.getWantlistVinyls().collectLatest { list ->
+            wantlist = list.distinctBy { it.id }
+        }
+    }
 
     val scope = rememberCoroutineScope()
 
@@ -64,22 +70,32 @@ fun WantlistScreen() {
         Spacer(Modifier.height(12.dp))
 
         if (wantlist.isEmpty() && query.isBlank()) {
-            // Mensaje si hay vacío
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Busca discos y agrégalos a tu wantlist")
             }
         } else {
             val listToShow = if (query.isBlank()) wantlist else results
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(14.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
-                items(listToShow) { v ->
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                items(
+                    count = listToShow.size,
+                    key = { i -> listToShow[i].id }
+                ) { i ->
+                    val v = listToShow[i]
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            // Al tocar en resultados, insertamos en wantlist
                             .clickable(
                                 enabled = query.isNotBlank(),
-                                onClick = { scope.launch { wantDao.insert(MyWantlist(vinylId = v.id)) } }
+                                onClick = {
+                                    scope.launch {
+                                        wantDao.insert(MyWantlist(vinylId = v.id))
+                                        query = "" // limpiar tras agregar
+                                    }
+                                }
                             )
                     ) { VinylRowCompact(v) }
                 }
@@ -88,7 +104,6 @@ fun WantlistScreen() {
     }
 }
 
-// Reutilizamos el mismo ítem compacto que en Colección
 @Composable
 private fun VinylRowCompact(v: Vinyl) {
     Image(
