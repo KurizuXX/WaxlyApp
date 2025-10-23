@@ -63,11 +63,27 @@ fun LoginScreen(onBack: () -> Unit, onSuccess: () -> Unit) {
         }
     ) { pad ->
         Column(
-            Modifier.padding(pad).padding(16.dp).fillMaxWidth(),
+            Modifier
+                .padding(pad)
+                .padding(16.dp)
+                .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            OutlinedTextField(email, { email = it }, label = { Text("Email") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(pass, { pass = it }, label = { Text("Contraseña") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = pass,
+                onValueChange = { pass = it },
+                label = { Text("Contraseña") },
+                visualTransformation = PasswordVisualTransformation(),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
             Button(
                 onClick = { vm.login(email.trim(), pass) },
                 enabled = !ui.isLoading && email.isNotBlank() && pass.isNotBlank(),
@@ -80,7 +96,7 @@ fun LoginScreen(onBack: () -> Unit, onSuccess: () -> Unit) {
     }
 }
 
-/* Register: crea usuario, guarda datos mínimos en sesión y navega */
+/* Register: crea usuario, valida email y clave, guarda datos mínimos en sesión y navega */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(onBack: () -> Unit, onSuccess: () -> Unit) {
@@ -93,6 +109,10 @@ fun RegisterScreen(onBack: () -> Unit, onSuccess: () -> Unit) {
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var pass by rememberSaveable { mutableStateOf("") }
+
+    // --- Validaciones simples ---
+    val emailValid by remember(email) { mutableStateOf(email.isNotBlank() && '@' in email) }
+    val passValid  by remember(pass)  { mutableStateOf(pass.length >= 6) } // mínimo 6 caracteres
 
     LaunchedEffect(ui.success) {
         if (ui.success) {
@@ -110,15 +130,59 @@ fun RegisterScreen(onBack: () -> Unit, onSuccess: () -> Unit) {
         }
     ) { pad ->
         Column(
-            Modifier.padding(pad).padding(16.dp).fillMaxWidth(),
+            Modifier
+                .padding(pad)
+                .padding(16.dp)
+                .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(email, { email = it }, label = { Text("Email") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(pass, { pass = it }, label = { Text("Contraseña") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Email con isError cuando no contiene '@'
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                singleLine = true,
+                isError = email.isNotEmpty() && !emailValid,
+                supportingText = {
+                    if (email.isNotEmpty() && !emailValid) {
+                        Text("El email debe contener '@'", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Password con mínimo 6 caracteres
+            OutlinedTextField(
+                value = pass,
+                onValueChange = { pass = it },
+                label = { Text("Contraseña (mín. 6)") },
+                visualTransformation = PasswordVisualTransformation(),
+                singleLine = true,
+                isError = pass.isNotEmpty() && !passValid,
+                supportingText = {
+                    if (pass.isNotEmpty() && !passValid) {
+                        Text("La contraseña debe tener 6 caracteres o más", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            val canSubmit = !ui.isLoading &&
+                    name.isNotBlank() &&
+                    emailValid &&
+                    passValid
+
             Button(
                 onClick = { vm.register(name.trim(), email.trim(), pass) },
-                enabled = !ui.isLoading && name.isNotBlank() && email.isNotBlank() && pass.isNotBlank(),
+                enabled = canSubmit,
                 modifier = Modifier.fillMaxWidth()
             ) { Text("Crear cuenta") }
 
