@@ -60,8 +60,15 @@ fun CollectionScreen() {
     }
 
     val scope = rememberCoroutineScope()
+
+    // Aquí se combinan los resultados y se eliminan los duplicados
     val listToShow = remember(defaults, collected, query, results) {
-        if (query.isBlank()) (defaults + collected).distinctBy { it.id } else results
+        val list = if (query.isBlank()) {
+            (defaults + collected)
+        } else {
+            results.filter { resultVinyl -> collected.none { it.id == resultVinyl.id } }
+        }
+        list.distinctBy { it.id }
     }
 
     Column(Modifier.fillMaxSize().padding(horizontal = 12.dp)) {

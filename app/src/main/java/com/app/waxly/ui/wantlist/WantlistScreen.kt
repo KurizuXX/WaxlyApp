@@ -52,6 +52,15 @@ fun WantlistScreen() {
 
     val scope = rememberCoroutineScope()
 
+    val listToShow = remember(wantlist, query, results) {
+        val list = if (query.isBlank()) {
+            wantlist
+        } else {
+            results.filter { resultVinyl -> wantlist.none { it.id == resultVinyl.id } }
+        }
+        list.distinctBy { it.id }
+    }
+
     Column(Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
         Spacer(Modifier.height(8.dp))
         Text("WANTLIST", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
@@ -69,12 +78,14 @@ fun WantlistScreen() {
 
         Spacer(Modifier.height(12.dp))
 
-        if (wantlist.isEmpty() && query.isBlank()) {
+        if (listToShow.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Busca discos y agrégalos a tu wantlist")
+                Text(
+                    if (query.isBlank()) "Busca discos y agrégalos a tu wantlist" 
+                    else "Sin resultados para \"$query\""
+                )
             }
         } else {
-            val listToShow = if (query.isBlank()) wantlist else results
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)

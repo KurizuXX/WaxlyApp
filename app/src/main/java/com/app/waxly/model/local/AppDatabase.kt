@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [User::class, Vinyl::class, MyCollection::class, MyWantlist::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -37,7 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "waxly.db"
                 )
                     // En desarrollo: si cambia el esquema, borra y recrea (evita crash por migraciones)
-                    .fallbackToDestructiveMigration(true)
+                    .fallbackToDestructiveMigration()
                     // Seed inicial y verificación al abrir
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
