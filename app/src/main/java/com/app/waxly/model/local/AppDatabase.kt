@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [User::class, Vinyl::class, MyCollection::class, MyWantlist::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -36,7 +36,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "waxly.db"
                 )
-
+                    // En desarrollo: si cambia el esquema, borra y recrea (evita crash por migraciones)
+                    .fallbackToDestructiveMigration()
                     // Seed inicial y verificación al abrir
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
@@ -64,7 +65,7 @@ abstract class AppDatabase : RoomDatabase() {
                 db
             }
 
-        // Catálogo de vinilos
+        // Catálogo de vinilos (usa drawables reales que tengas)
         private fun seedVinyls(): List<Vinyl> = listOf(
             Vinyl(title = "Abbey Road", artist = "The Beatles", year = 1969, coverRes = R.drawable.cover_abbey_road),
             Vinyl(title = "The Dark Side of the Moon", artist = "Pink Floyd", year = 1973, coverRes = R.drawable.cover_dark_side),
