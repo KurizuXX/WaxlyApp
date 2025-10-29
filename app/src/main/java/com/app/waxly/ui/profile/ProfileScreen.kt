@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.app.waxly.repository.SessionManager
 
-// Perfil minimal: avatar genérico, nombre/email guardados en sesión y botón de logout
+// Perfil minimalista, avatar genérico, nombre/email guardados en sesión y botón de logout
 @Composable
 fun ProfileScreen(navController: NavController, onLogoutRoute: String) {
     val context = LocalContext.current
@@ -38,7 +38,7 @@ fun ProfileScreen(navController: NavController, onLogoutRoute: String) {
         Spacer(Modifier.weight(1f))
         Button(
             onClick = {
-                // Limpiamos sesión y reseteamos backstack hasta Auth
+                // Limpiamos sesión
                 session.clear()
                 navController.navigate(onLogoutRoute) {
                     popUpTo(0) { inclusive = true }

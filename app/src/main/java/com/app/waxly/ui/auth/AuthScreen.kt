@@ -16,7 +16,7 @@ import com.app.waxly.repository.SessionManager
 import com.app.waxly.repository.UserRepository
 import kotlinx.coroutines.launch
 
-/* Pantalla inicial: dos botones centrados */
+/* Pantalla inicial, dos botones centrados */
 @Composable
 fun AuthLandingScreen(onLogin: () -> Unit, onRegister: () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

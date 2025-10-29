@@ -13,7 +13,7 @@ interface VinylDao {
     @Query("SELECT * FROM vinyls ORDER BY title")
     fun getAll(): Flow<List<Vinyl>>
 
-    // ⬇️ Renombrado para evitar choque con Compose
+    // Renombrado para evitar choque con Compose
     @Query("""
         SELECT * FROM vinyls 
         WHERE title LIKE :q OR artist LIKE :q 
