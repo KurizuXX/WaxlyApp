@@ -36,25 +36,16 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "waxly.db"
                 )
-                    // En desarrollo: si cambia el esquema, borra y recrea (evita crash por migraciones)
                     .fallbackToDestructiveMigration()
-                    // Seed inicial y verificación al abrir
+                    // Seed inicial
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
                             CoroutineScope(Dispatchers.IO).launch {
-                                INSTANCE?.vinylDao()?.let { dao ->
-                                    if (dao.count() == 0) dao.insertAll(seedVinyls())
-                                }
-                            }
-                        }
-
-                        // Si la DB ya existía pero quedó vacía, sembrar al abrir
-                        override fun onOpen(db: SupportSQLiteDatabase) {
-                            super.onOpen(db)
-                            CoroutineScope(Dispatchers.IO).launch {
-                                INSTANCE?.vinylDao()?.let { dao ->
-                                    if (dao.count() == 0) dao.insertAll(seedVinyls())
+                                // FIX: Call get() inside the coroutine to retrieve the initialized instance safely.
+                                val dao = get(context.applicationContext).vinylDao()
+                                if (dao.count() == 0) {
+                                    dao.insertAll(seedVinyls())
                                 }
                             }
                         }
