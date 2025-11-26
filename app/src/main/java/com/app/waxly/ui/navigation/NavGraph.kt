@@ -17,6 +17,8 @@ import com.app.waxly.ui.home.HomeScreen
 import com.app.waxly.ui.profile.ProfileScreen
 import com.app.waxly.ui.location.* // Importa la nueva pantalla
 import com.app.waxly.ui.wantlist.WantlistScreen
+import com.app.waxly.ui.location.*
+
 
 object Routes {
     const val AUTH_LANDING = "authLanding"
