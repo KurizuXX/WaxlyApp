@@ -15,9 +15,9 @@ import com.app.waxly.ui.auth.RegisterScreen
 import com.app.waxly.ui.collection.CollectionScreen
 import com.app.waxly.ui.home.HomeScreen
 import com.app.waxly.ui.profile.ProfileScreen
+import com.app.waxly.ui.location.* // Importa la nueva pantalla
 import com.app.waxly.ui.wantlist.WantlistScreen
 
-// Rutas centralizadas para evitar strings sueltos
 object Routes {
     const val AUTH_LANDING = "authLanding"
     const val LOGIN = "login"
@@ -26,64 +26,43 @@ object Routes {
     const val COLLECTION = "collection"
     const val WANTLIST = "wantlist"
     const val PROFILE = "profile"
+    const val LOCATION_SEARCH = "locationSearch" // La ruta ya existe, perfecto
 }
 
-// Host de navegación + Scaffold con bottom bar solo en pantallas top-level
 @Composable
 fun NavGraph(navController: NavHostController) {
-    val topLevelRoutes = setOf(Routes.HOME, Routes.COLLECTION, Routes.WANTLIST, Routes.PROFILE)
+    // 👇 AÑADIMOS LOCATION_SEARCH A LAS RUTAS DE PRIMER NIVEL
+    val topLevelRoutes = setOf(Routes.HOME, Routes.COLLECTION, Routes.WANTLIST, Routes.PROFILE, Routes.LOCATION_SEARCH)
     val backStack by navController.currentBackStackEntryAsState()
     val current = backStack?.destination?.route
 
     Scaffold(
         bottomBar = { if (current in topLevelRoutes) BottomNavBar(navController) }
     ) { inner ->
-        // Árbol de navegación
         NavHost(
             navController = navController,
             startDestination = Routes.AUTH_LANDING,
             modifier = Modifier.padding(inner)
         ) {
-            // Landing con botones Login/Register
-            composable(Routes.AUTH_LANDING) {
-                AuthLandingScreen(
-                    onLogin = { navController.navigate(Routes.LOGIN) },
-                    onRegister = { navController.navigate(Routes.REGISTER) }
-                )
-            }
-            // Login: al éxito, limpiamos backstack hasta landing y vamos a HOME
-            composable(Routes.LOGIN) {
-                LoginScreen(
-                    onBack = { navController.popBackStack() },
-                    onSuccess = {
-                        navController.navigate(Routes.HOME) {
-                            popUpTo(Routes.AUTH_LANDING) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                )
-            }
-            // Register: mismo flujo que Login
-            composable(Routes.REGISTER) {
-                RegisterScreen(
-                    onBack = { navController.popBackStack() },
-                    onSuccess = {
-                        navController.navigate(Routes.HOME) {
-                            popUpTo(Routes.AUTH_LANDING) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                )
-            }
-            // Top-levels
+            // Rutas de autenticación (se mantienen igual)
+            composable(Routes.AUTH_LANDING) { AuthLandingScreen( onLogin = { navController.navigate(Routes.LOGIN) }, onRegister = { navController.navigate(Routes.REGISTER) } ) }
+            composable(Routes.LOGIN) { LoginScreen( onBack = { navController.popBackStack() }, onSuccess = { navController.navigate(Routes.HOME) { popUpTo(Routes.AUTH_LANDING) { inclusive = true }; launchSingleTop = true } } ) }
+            composable(Routes.REGISTER) { RegisterScreen( onBack = { navController.popBackStack() }, onSuccess = { navController.navigate(Routes.HOME) { popUpTo(Routes.AUTH_LANDING) { inclusive = true }; launchSingleTop = true } } ) }
+
+            // Rutas de primer nivel
             composable(Routes.HOME) { HomeScreen() }
             composable(Routes.COLLECTION) { CollectionScreen() }
             composable(Routes.WANTLIST) { WantlistScreen() }
             composable(Routes.PROFILE) {
+                // ProfileScreen vuelve a su llamada simple
                 ProfileScreen(
                     navController = navController,
                     onLogoutRoute = Routes.AUTH_LANDING
                 )
+            }
+            // La pantalla de búsqueda se define como un destino navegable
+            composable(Routes.LOCATION_SEARCH) {
+                LocationSearchScreen()
             }
         }
     }

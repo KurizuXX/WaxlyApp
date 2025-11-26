@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -24,6 +26,7 @@ import com.app.waxly.model.local.AppDatabase
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.random.Random
 
+// La firma de la función ya no necesita el parámetro 'onNavigateToSearch'
 @Composable
 fun HomeScreen() {
     val ctx = LocalContext.current
@@ -63,6 +66,8 @@ fun HomeScreen() {
             .padding(horizontal = 12.dp)
             .padding(top = 8.dp)
     ) {
+        // El botón/tarjeta de búsqueda se ha eliminado de aquí.
+
         Section("Los vinilos más vendidos de la semana", topSelling)
         Section("Los vinilos más valiosos de la semana", mostValuable)
         Section("Los vinilos más coleccionados de la semana", mostCollected)

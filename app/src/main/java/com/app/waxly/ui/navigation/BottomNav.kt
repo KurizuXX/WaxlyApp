@@ -3,6 +3,7 @@ package com.app.waxly.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationOn // <-- 1. IMPORTA EL NUEVO ÍCONO
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -19,9 +20,11 @@ data class NavItem(val route: String, val label: String, val icon: ImageVector)
 // Barra inferior: resalta seleccionado y preserva estado al cambiar tabs
 @Composable
 fun BottomNavBar(navController: NavController) {
+    // 2. AÑADE EL NUEVO ITEM A LA LISTA
     val items = listOf(
         NavItem(Routes.HOME, "Home", Icons.Filled.Home),
-        NavItem(Routes.COLLECTION, "Coleccion", Icons.Filled.Menu),
+        NavItem(Routes.COLLECTION, "Colección", Icons.Filled.Menu),
+        NavItem(Routes.LOCATION_SEARCH, "Buscar", Icons.Filled.LocationOn), // <-- NUEVO ITEM
         NavItem(Routes.WANTLIST, "Wantlist", Icons.Filled.Favorite),
         NavItem(Routes.PROFILE, "Perfil", Icons.Filled.Person)
     )

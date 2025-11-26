@@ -16,6 +16,8 @@ lifecycleCompose = "2.9.4"
 
 # Room
 room = "2.8.2"
+playServicesLocation = "21.2.0"
+okhttp = "4.12.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +48,8 @@ androidx-lifecycle-runtime-compose   = { group = "androidx.lifecycle", name = "l
 androidx-room-runtime  = { group = "androidx.room", name = "room-runtime",  version.ref = "room" }
 androidx-room-ktx      = { group = "androidx.room", name = "room-ktx",      version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

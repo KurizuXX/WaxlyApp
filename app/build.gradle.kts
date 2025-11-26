@@ -48,6 +48,10 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    implementation(libs.androidx.core.ktx)
+    implementation("com.google.maps.android:maps-compose:4.4.1")
+
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -55,6 +59,8 @@ dependencies {
     // Room (KSP)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.play.services.location)
+    implementation(libs.okhttp)
     ksp(libs.androidx.room.compiler)
 
     // MVVM Compose
