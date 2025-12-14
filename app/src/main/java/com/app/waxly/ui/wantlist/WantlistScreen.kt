@@ -56,7 +56,7 @@ fun WantlistScreen() {
         val list = if (query.isBlank()) {
             wantlist
         } else {
-            results.filter { resultVinyl -> wantlist.none { it.id == resultVinyl.id } }
+            results.filter { r -> wantlist.none { it.id == r.id } }
         }
         list.distinctBy { it.id }
     }
@@ -81,7 +81,7 @@ fun WantlistScreen() {
         if (listToShow.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    if (query.isBlank()) "Busca discos y agrégalos a tu wantlist" 
+                    if (query.isBlank()) "Busca discos y agrégalos a tu wantlist"
                     else "Sin resultados para \"$query\""
                 )
             }
@@ -104,11 +104,13 @@ fun WantlistScreen() {
                                 onClick = {
                                     scope.launch {
                                         wantDao.insert(MyWantlist(vinylId = v.id))
-                                        query = "" // limpiar tras agregar
+                                        query = ""
                                     }
                                 }
                             )
-                    ) { VinylRowCompact(v) }
+                    ) {
+                        VinylRowCompact(v)
+                    }
                 }
             }
         }
@@ -117,12 +119,20 @@ fun WantlistScreen() {
 
 @Composable
 private fun VinylRowCompact(v: Vinyl) {
+    val context = LocalContext.current
+    val resId = remember(v.coverName) {
+        context.resources.getIdentifier(v.coverName, "drawable", context.packageName)
+    }
+    val finalRes = if (resId != 0) resId else android.R.drawable.ic_menu_report_image
+
     Image(
-        painter = painterResource(id = v.coverRes),
+        painter = painterResource(id = finalRes),
         contentDescription = "${v.artist} - ${v.title}",
         modifier = Modifier.size(84.dp).clip(RoundedCornerShape(10.dp))
     )
+
     Spacer(Modifier.width(14.dp))
+
     Column(Modifier.fillMaxWidth()) {
         Text(v.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(v.artist, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)

@@ -7,6 +7,5 @@ sealed class AppScreens(val route: String) {
     object SplashScreen : AppScreens("splash_screen")
     object HomeScreen : AppScreens("home_screen")
 
-    // 👇 AÑADE ESTA NUEVA RUTA
     object LocationSearchScreen : AppScreens("location_search_screen")
 }

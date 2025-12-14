@@ -10,15 +10,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface VinylDao {
 
-    @Query("SELECT * FROM vinyls ORDER BY title")
+    @Query("SELECT * FROM vinyls ORDER BY title ASC")
     fun getAll(): Flow<List<Vinyl>>
 
-    // Renombrado para evitar choque con Compose
-    @Query("""
-        SELECT * FROM vinyls 
-        WHERE title LIKE :q OR artist LIKE :q 
-        ORDER BY title
-    """)
+    @Query("SELECT * FROM vinyls WHERE title LIKE :q OR artist LIKE :q ORDER BY title ASC")
     fun searchVinyls(q: String): Flow<List<Vinyl>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

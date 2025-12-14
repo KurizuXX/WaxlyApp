@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             WaxlyTheme {
                 val navController = rememberNavController()
-                // ⬇️ Llamada correcta: solo pasamos el navController
+                // solo pasamos el navController
                 NavGraph(navController = navController)
             }
         }

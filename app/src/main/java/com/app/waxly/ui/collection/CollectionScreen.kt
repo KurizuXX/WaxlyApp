@@ -61,12 +61,11 @@ fun CollectionScreen() {
 
     val scope = rememberCoroutineScope()
 
-    // Aquí se combinan los resultados y se eliminan los duplicados
     val listToShow = remember(defaults, collected, query, results) {
         val list = if (query.isBlank()) {
-            (defaults + collected)
+            defaults + collected
         } else {
-            results.filter { resultVinyl -> collected.none { it.id == resultVinyl.id } }
+            results.filter { r -> collected.none { it.id == r.id } }
         }
         list.distinctBy { it.id }
     }
@@ -113,11 +112,13 @@ fun CollectionScreen() {
                                 onClick = {
                                     scope.launch {
                                         myCollectionDao.insert(MyCollection(vinylId = v.id))
-                                        query = "" // limpiar tras agregar
+                                        query = ""
                                     }
                                 }
                             )
-                    ) { VinylRowCompact(v) }
+                    ) {
+                        VinylRowCompact(v)
+                    }
                 }
             }
         }
@@ -126,12 +127,20 @@ fun CollectionScreen() {
 
 @Composable
 private fun VinylRowCompact(v: Vinyl) {
+    val context = LocalContext.current
+    val resId = remember(v.coverName) {
+        context.resources.getIdentifier(v.coverName, "drawable", context.packageName)
+    }
+    val finalRes = if (resId != 0) resId else android.R.drawable.ic_menu_report_image
+
     Image(
-        painter = painterResource(id = v.coverRes),
+        painter = painterResource(id = finalRes),
         contentDescription = "${v.artist} - ${v.title}",
         modifier = Modifier.size(84.dp).clip(RoundedCornerShape(10.dp))
     )
+
     Spacer(Modifier.width(14.dp))
+
     Column(Modifier.fillMaxWidth()) {
         Text(v.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(v.artist, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
