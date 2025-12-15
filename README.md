@@ -118,6 +118,8 @@ Click derecho sobre VinylActionDialogTest → Run
 - Los nombres de las imágenes deben coincidir exactamente con coverName
 - Proyecto desarrollado con fines educativos y académicos
 
-👤 Autor
+---
+
+## 👤 Autor
 Desarrollado por Cristóbal Segovia y Bastián Sepúlveda
 Proyecto académico – Ingeniería en Informática
