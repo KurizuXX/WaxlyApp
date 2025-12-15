@@ -39,22 +39,17 @@ El proyecto está enfocado en buenas prácticas de **arquitectura**, **persisten
 El proyecto sigue una arquitectura **MVVM (Model – View – ViewModel)**, separando claramente responsabilidades.
 
 com.app.waxly
-│
 ├── model
 │ ├── entities // Entidades Room (User, Vinyl, etc.)
 │ └── local // DAOs y AppDatabase
-│
 ├── repository // Lógica de acceso a datos
-│
 ├── viewmodel // ViewModels
-│
 ├── ui
 │ ├── auth
 │ ├── home
 │ ├── collection
 │ ├── wantlist
 │ └── navigation
-│
 └── MainActivity.kt
 
 yaml
