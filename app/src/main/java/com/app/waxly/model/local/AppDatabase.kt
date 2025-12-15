@@ -81,7 +81,8 @@ abstract class AppDatabase : RoomDatabase() {
             Vinyl(title = "Epistolares", artist = "AKRIILA", year = 2024, coverName = "cover_epistolares"),
             Vinyl(title = "The New Abnormal", artist = "The Strokes", year = 2020, coverName = "cover_the_new_abnormal"),
             Vinyl(title = "Breach", artist = "Twenty One Pilots", year = 2025, coverName = "cover_breach"),
-            Vinyl(title = "Blonde", artist = "Frank Ocean", year = 2016, coverName = "cover_blonde")
+            Vinyl(title = "Blonde", artist = "Frank Ocean", year = 2016, coverName = "cover_blonde"),
+            Vinyl(title = "La Vida Era Más Corta", artist = "Milo J", year = 2025, coverName = "cover_la_vida_era_mas_corta"),
         )
     }
 }

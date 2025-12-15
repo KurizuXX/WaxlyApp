@@ -206,7 +206,7 @@ fun RegisterScreen(
 
                 when {
                     n.isBlank() -> localError = "El nombre es obligatorio"
-                    e.isBlank() || !e.contains("@") -> localError = "Email inválido"
+                    e.isBlank() || !e.contains("@") -> localError = "Email inválido, debe llevar @"
                     password.length < 6 -> localError = "La contraseña debe tener al menos 6 caracteres"
                     password != password2 -> localError = "Las contraseñas no coinciden"
                     else -> vm.register(n, e, password)
