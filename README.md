@@ -34,29 +34,6 @@ El proyecto está enfocado en buenas prácticas de **arquitectura**, **persisten
 
 ---
 
-## 🧱 Arquitectura
-
-El proyecto sigue una arquitectura **MVVM (Model – View – ViewModel)**, separando claramente responsabilidades.
-
-com.app.waxly
-├── model
-│ ├── entities // Entidades Room (User, Vinyl, etc.)
-│ └── local // DAOs y AppDatabase
-├── repository // Lógica de acceso a datos
-├── viewmodel // ViewModels
-├── ui
-│ ├── auth
-│ ├── home
-│ ├── collection
-│ ├── wantlist
-│ └── navigation
-└── MainActivity.kt
-
-yaml
-Copiar código
-
----
-
 ## 🗄️ Persistencia de datos
 
 - Se utiliza **Room Database** para almacenamiento local
@@ -85,9 +62,6 @@ El proyecto incluye **dos pruebas clave**, enfocadas en estabilidad y claridad.
 📍 Ubicación:
 app/src/test/java/com/app/waxly/AuthViewModelTest.kt
 
-yaml
-Copiar código
-
 ---
 
 ### ✅ Test de UI (Compose)
@@ -101,9 +75,6 @@ Copiar código
 
 📍 Ubicación:
 app/src/androidTest/java/com/app/waxly/VinylActionDialogTest.kt
-
-yaml
-Copiar código
 
 ---
 
@@ -124,32 +95,29 @@ Copiar código
 1. Clona el repositorio:
    ```bash
    git clone https://github.com/tu-usuario/waxly-app.git
-Abre el proyecto en Android Studio
+2. Abre el proyecto en Android Studio
+3. Sincroniza Gradle
+4. Ejecuta la app en un emulador o dispositivo físico
 
-Sincroniza Gradle
+---
 
-Ejecuta la app en un emulador o dispositivo físico
+## 🧪 Ejecutar tests
 
-🧪 Ejecutar tests
-Unit tests
-mathematica
-Copiar código
+- Unit tests
 Click derecho sobre AuthViewModelTest → Run
-UI tests
-Asegúrate de tener un emulador activo
-
-mathematica
-Copiar código
+- UI tests
+ * Asegúrate de tener un emulador activo
 Click derecho sobre VinylActionDialogTest → Run
+
+---
+
 📌 Notas importantes
-Si se agregan nuevos vinilos al seed:
 
-Es necesario borrar la app o aumentar la versión de la base de datos
-
-Los nombres de las imágenes deben coincidir exactamente con coverName
-
-Proyecto desarrollado con fines educativos y académicos
+- Si se agregan nuevos vinilos al seed:
+  Es necesario borrar la app o aumentar la versión de la base de datos
+- Los nombres de las imágenes deben coincidir exactamente con coverName
+- Proyecto desarrollado con fines educativos y académicos
 
 👤 Autor
-Desarrollado por Cris
+Desarrollado por Cristóbal Segovia y Bastián Sepúlveda
 Proyecto académico – Ingeniería en Informática
